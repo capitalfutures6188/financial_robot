@@ -1,0 +1,1968 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>互動式理財規劃之旅</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: #FDF8F0;
+            color: #374151;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 450px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .step-card {
+            background-color: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: all 0.3s ease-in-out;
+        }
+        .nav-link {
+            transition: color 0.3s;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #4A908A;
+        }
+        .btn-primary {
+            background-color: #4A908A;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #3D7A73;
+        }
+        .btn-secondary {
+            background-color: #E5E7EB;
+            color: #374151;
+            transition: background-color 0.3s;
+        }
+        .btn-secondary:hover {
+            background-color: #D1D5DB;
+        }
+        .quiz-option.selected {
+            background-color: #D1FAE5;
+            border-color: #4A908A;
+        }
+        .badge {
+            background-color: #FEF3C7;
+            color: #92400E;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        [data-section] {
+            scroll-margin-top: 80px;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6B7280;
+        }
+        .image-modal-content {
+            padding: 0;
+            background: none;
+            box-shadow: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .image-modal-content img {
+            max-width: 100%;
+            max-height: 85vh;
+            object-fit: contain;
+            border-radius: 1rem;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+        }
+        .image-modal-content .close-btn {
+            color: white;
+            text-shadow: 0 0 5px rgba(0,0,0,0.8);
+        }
+        .gallery-modal-content {
+            max-width: 500px;
+        }
+        .gallery-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1010;
+        }
+        .gallery-nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        #gallery-prev-btn {
+            left: -50px;
+        }
+        #gallery-next-btn {
+            right: -50px;
+        }
+        .oracle-card {
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        .oracle-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .oracle-card.flipped .oracle-card-inner {
+            transform: rotateY(180deg);
+        }
+        .oracle-card-front, .oracle-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 0.75rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .oracle-card-back {
+            background-color: #4A908A;
+            color: white;
+            font-size: 3rem;
+            border: 2px solid #FDF8F0;
+        }
+        .oracle-card-front {
+            background-color: #FEF3C7;
+            color: #92400E;
+            transform: rotateY(180deg);
+        }
+        #swipe-card-stack {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            margin: 0 auto;
+        }
+        .swipe-card {
+            position: absolute;
+            width: 90%;
+            height: 180px;
+            left: 5%;
+            top: 10px;
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            cursor: grab;
+            user-select: none;
+        }
+        .swipe-card:active {
+             cursor: grabbing;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <header id="header" class="bg-white/80 backdrop-blur-md fixed top-0 left-0 right-0 z-50 shadow-sm">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="#" class="flex items-center space-x-2">
+                <img src="images/群益期貨logo.png" alt="群益期貨 Logo" class="h-8" onerror="this.onerror=null;this.src='https://placehold.co/200x50/FFFFFF/000000?text=Logo';">
+            </a>
+            <nav class="hidden md:flex space-x-6 text-gray-600 font-medium">
+                <a href="#journey-start" class="nav-link">起點</a>
+                <a href="#step1" class="nav-link">Step 1: 風險屬性</a>
+                <a href="#step2" class="nav-link">Step 2: 理財習慣</a>
+                <a href="#step3" class="nav-link">Step 3: 投資工具</a>
+                <a href="#step4" class="nav-link">Step 4: 專屬計畫</a>
+                <a href="#step5" class="nav-link">Step 5: 立即行動</a>
+            </nav>
+            <div class="md:hidden">
+                <button id="mobile-menu-btn" class="text-gray-600" aria-label="開啟選單">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden bg-white/90">
+            <a href="#journey-start" class="block py-2 px-4 text-sm text-gray-600 hover:bg-gray-100">起點</a>
+            <a href="#step1" class="block py-2 px-4 text-sm text-gray-600 hover:bg-gray-100">Step 1: 風險屬性</a>
+            <a href="#step2" class="block py-2 px-4 text-sm text-gray-600 hover:bg-gray-100">Step 2: 理財習慣</a>
+            <a href="#step3" class="block py-2 px-4 text-sm text-gray-600 hover:bg-gray-100">Step 3: 投資工具</a>
+            <a href="#step4" class="block py-2 px-4 text-sm text-gray-600 hover:bg-gray-100">Step 4: 專屬計畫</a>
+            <a href="#step5" class="block py-2 px-4 text-sm text-gray-600 hover:bg-gray-100">Step 5: 立即行動</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 pt-24 pb-12">
+        <!-- Section: Journey Start -->
+        <section id="journey-start" data-section class="text-center mb-16">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">5 分鐘，預見您的財富未來</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-8">理財不複雜。我們將複雜的金融概念，轉化為有趣的互動模擬，讓零經驗的您，也能輕鬆建立財務信心。</p>
+            <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <a href="#step1" class="w-full sm:w-auto px-8 py-3 font-semibold rounded-lg btn-primary">就是現在，開始規劃</a>
+                <div id="progress-container" class="w-full sm:w-auto">
+                    <span class="font-medium text-gray-700">學習進度：</span>
+                    <div class="w-full sm:w-48 bg-gray-200 rounded-full h-2.5 inline-block align-middle">
+                        <div id="progress-bar" class="bg-teal-500 h-2.5 rounded-full" style="width: 0%"></div>
+                    </div>
+                    <span id="progress-percent" class="ml-2 font-semibold">0%</span>
+                </div>
+            </div>
+             <div id="badges-container" class="mt-6 flex justify-center space-x-2"></div>
+        </section>
+
+        <!-- Step 1: Risk Assessment -->
+        <section id="step1" data-section class="mb-16">
+            <div class="step-card">
+                <h2 class="text-3xl font-bold text-center mb-2">Step 1: 了解您的風險屬性</h2>
+                <p class="text-gray-600 text-center mb-8">您是不是也覺得，投資最難的不是選標的，而是不確定自己能承受多少虧損？完成這個測驗，找到您「睡得著覺」的投資風格。</p>
+                <div id="risk-quiz">
+                    <div id="quiz-question-container" class="mb-6"></div>
+                    <div id="quiz-navigation" class="flex justify-between items-center">
+                        <button id="prev-question" class="px-6 py-2 rounded-lg btn-secondary" disabled>上一題</button>
+                        <span id="question-indicator" class="text-sm text-gray-500"></span>
+                        <button id="next-question" class="px-6 py-2 rounded-lg btn-primary" disabled>下一題</button>
+                    </div>
+                </div>
+                <div id="risk-result" class="hidden text-center p-6 bg-amber-50 rounded-lg">
+                    <h3 class="text-2xl font-bold mb-2">測驗結果出爐！您的風險屬性是：<span id="result-type" class="text-teal-600"></span></h3>
+                    <p id="result-desc" class="text-gray-700 mb-4"></p>
+                    <p class="font-semibold">最適合您的投資工具組合：<span id="result-tools" class="text-gray-800"></span></p>
+                    <div class="mt-4 pt-4 border-t border-amber-200">
+                        <p class="font-semibold">建議資產配置比例：</p>
+                        <p id="result-allocation" class="text-gray-800"></p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-amber-200">
+                        <p class="text-gray-700">想知道如何用這些工具，打造專屬您的投資組合嗎？</p>
+                        <a href="https://line.me/R/ti/p/@a6024" target="_blank" class="mt-2 inline-block px-6 py-2 text-sm font-semibold rounded-lg btn-primary">立即諮詢【群益專業顧問】</a>
+                    </div>
+                    <button id="retake-quiz" class="mt-4 px-6 py-2 rounded-lg btn-secondary text-sm">重新測驗</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 2: Financial Basics (NEW) -->
+        <section id="step2" data-section class="mb-16">
+             <div class="step-card">
+                <h2 class="text-3xl font-bold text-center mb-2">Step 2: 探索您的理財DNA</h2>
+                <p class="text-gray-600 text-center mb-8">理財不該是枯燥的數字。我們用兩個有趣的測驗，發掘您的理財潛力與消費習慣！</p>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Oracle Card Game -->
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-xl font-bold mb-3 text-center">【神諭占卜】您的理財人格是？ 🔮</h3>
+                        <p id="oracle-instruction" class="text-sm text-gray-600 mb-4 text-center">心中默念今年的理財目標，憑直覺選一張牌...</p>
+                        <div id="oracle-cards-container" class="grid grid-cols-2 gap-4 h-64">
+                        </div>
+                        <div id="oracle-result-container" class="hidden text-center mt-4">
+                            <div class="p-4 bg-amber-100 border border-amber-200 rounded-lg">
+                                <div id="oracle-result-emoji" class="text-5xl mb-2"></div>
+                                <h4 id="oracle-result-title" class="text-xl font-bold text-amber-800"></h4>
+                                <p id="oracle-result-analysis" class="text-sm text-gray-700 mt-2"></p>
+                                <p id="oracle-result-guidance" class="text-sm font-semibold text-teal-700 mt-3 p-2 bg-teal-50 rounded-md"></p>
+                            </div>
+                            <button id="oracle-redraw-btn" class="mt-4 px-6 py-2 rounded-lg btn-secondary text-sm">再抽一次</button>
+                        </div>
+                    </div>
+                    <!-- Swipe to Save Game -->
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-xl font-bold mb-3 text-center">【滑動挑戰】您能省下多少錢？ ❤️</h3>
+                        <p class="text-sm text-gray-600 mb-4 text-center">面對消費誘惑，您會PASS還是BUY？向左滑PASS，向右滑BUY！</p>
+                        <div id="swipe-game-container">
+                            <div id="swipe-card-stack">
+                            </div>
+                            <div id="swipe-actions" class="flex justify-center space-x-8 mt-4">
+                                <button id="pass-btn" class="w-16 h-16 rounded-full bg-red-100 text-red-500 text-2xl font-bold flex items-center justify-center shadow-md hover:bg-red-200 transition-colors">✕</button>
+                                <button id="buy-btn" class="w-16 h-16 rounded-full bg-green-100 text-green-500 text-2xl font-bold flex items-center justify-center shadow-md hover:bg-green-200 transition-colors">❤️</button>
+                            </div>
+                        </div>
+                        <div id="swipe-result-container" class="hidden text-center mt-4">
+                             <div class="p-4 bg-blue-100 border border-blue-200 rounded-lg">
+                                <h4 class="text-lg font-bold text-blue-800">結算！</h4>
+                                <p class="text-gray-700 mt-2">您成功拒絕了 <span id="passed-count" class="font-bold"></span> 次誘惑！</p>
+                                <p class="text-lg mt-1">總共省下：</p>
+                                <p class="text-3xl font-bold text-blue-600 my-2">NT$ <span id="saved-amount"></span></p>
+                                <p class="text-sm text-gray-600 mt-4">如果將這筆錢投資，<br>一年後可能成長為 <span id="invested-saved-amount" class="font-bold text-teal-600"></span>！ (以7%年化報酬率計)</p>
+                            </div>
+                            <button id="swipe-restart-btn" class="mt-4 px-6 py-2 rounded-lg btn-secondary text-sm">再玩一次</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Step 3: Explore Tools -->
+        <section id="step3" data-section class class="mb-16">
+            <div class="step-card">
+                <h2 class="text-3xl font-bold text-center mb-2">Step 3: 探索您的投資工具箱</h2>
+                <p class="text-gray-600 text-center mb-8">您已具備基礎，現在來認識各種投資工具。我們將從六大工具概覽開始，再深入探討新手入門首選的ETF。</p>
+
+                <!-- Investment Tools Overview -->
+                <div class="mb-12 text-center">
+                    <h3 class="text-2xl font-bold mb-2">【一張圖看懂】六大投資工具</h3>
+                    <p class="text-sm text-gray-500 mb-6">點擊圖示，看更多詳細資訊</p>
+                    <div id="investment-tools-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-center"></div>
+                </div>
+
+                <!-- ETF Deep Dive -->
+                <div class="bg-teal-50 p-8 rounded-lg mb-8">
+                    <h3 class="text-2xl font-bold text-center mb-2">⭐ 新手入門超推的理由，只有一個：ETF</h3>
+                    <p class="text-gray-600 text-center max-w-3xl mx-auto mb-8">ETF對新手友善的理由很單純：【自動分散風險】。它像一個水果禮盒，用一筆錢就買到一籃子公司的股票。搭配「定期定額」，每月自動投資，是養成投資紀律的最佳方法。</p>
+                    
+                    <div class="grid md:grid-cols-2 gap-8 items-start">
+                        <!-- Popular ETF Comparison -->
+                        <div>
+                            <h4 class="text-xl font-bold mb-4 text-center">熱門ETF比一比：0050 vs. 0056</h4>
+                            <p class="text-sm text-gray-600 mb-4 text-center">以0050(元大台灣50)和0056(元大高股息)為例，看不同策略的歷史表現。</p>
+                            <div class="chart-container h-64">
+                                <canvas id="etf-comparison-chart"></canvas>
+                            </div>
+                        </div>
+                        <!-- How to pick ETF - Moved here -->
+                        <div>
+                            <h4 class="text-xl font-semibold mb-3">【選ETF密技】五個必看指標</h4>
+                            <ul class="list-disc list-inside text-gray-700 space-y-2">
+                                <li><b>看名稱，秒懂投資標的</b>：ETF名稱會揭示其追蹤的指數或資產類別。 <button class="text-blue-600 text-sm ml-2 underline" data-image-modal="name-dividend">如何看？</button></li>
+                                <li><b>總管理費用 (越低越好)</b>：此費用每年從您的投資中扣除，長期下來影響巨大。 <button class="text-blue-600 text-sm ml-2 underline" data-image-modal="expense-ratio">如何看？</button></li>
+                                <li><b>配息狀況 (現金流關鍵)</b>：了解配息頻率與歷史金額，影響您的現金流。 <button class="text-blue-600 text-sm ml-2 underline" data-image-modal="dividend-frequency">如何看？</button></li>
+                                <li><b>成分股與產業配置</b>：了解ETF實際持有標的，確保符合您的投資理念。 <button class="text-blue-600 text-sm ml-2 underline" data-image-modal="composition">如何看？</button></li>
+                                <li><b>注意折溢價 (避免買貴)</b>：市價與淨值(NAV)的差異。溢價時買入可能買貴。 <button class="text-blue-600 text-sm ml-2 underline" data-image-modal="premium-discount">如何看？</button></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- New Futures Section - Updated for engagement -->
+                <div class="bg-blue-50 p-8 rounded-lg">
+                    <h3 class="text-2xl font-bold text-center mb-2">💡 進階工具：期貨，不只是投機</h3>
+                    <p class="text-gray-600 text-center max-w-3xl mx-auto mb-8">期貨，聽起來很複雜？<b>但是</b>，它更是專業投資者在市場風暴中保護資產的<b>「超級盾牌」🛡️</b>。一起來揭開期貨的神秘面紗！</p>
+                    
+                    <div class="grid md:grid-cols-2 gap-8 items-start">
+                        <div>
+                            <h4 class="text-xl font-semibold mb-3">😱 股市大跌2000點那天，您還好嗎？</h4>
+                            <p class="text-gray-700 mb-4">
+                                還記得嗎？台股曾因國際情勢，<b>單日狂瀉超過 2000 點</b>，創下史上最大跌幅！許多股票開盤跌停鎖死，想賣都賣不掉... 您的心臟還受得了嗎？💔
+                            </p>
+                            <h4 class="text-xl font-semibold mb-3">🛡️ 期貨：市場下跌時的救命稻草</h4>
+                            <p class="text-gray-700 mb-4">
+                                如果當時您持有大量股票卻無法止損，該怎麼辦？這時，期貨的<b>「放空機制」</b>就是您的避險利器！
+                            </p>
+                            <ul class="list-disc list-inside text-gray-700 space-y-1">
+                                <li><b>空單獲利</b>：市場跌越多，放空期貨賺越多。</li>
+                                <li><b>彌補現貨損失</b>：期貨獲利能有效抵銷股票跌價。</li>
+                                <li><b>外資都在用</b>：專業外資在市場動盪時，都用期貨空單保護現貨部位。</li>
+                            </ul>
+                            <p class="text-gray-700 mt-2">期貨不只是投機，更是專業的<b>風險管理工具</b>！</p>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-semibold mb-3">【迷思破解】別再誤會期貨了！</h4>
+                            <ul class="list-disc list-inside text-gray-700 space-y-3">
+                                <li><b>❌ 迷思一：期貨是賭博！</b>
+                                    <p class="font-normal text-sm mt-1"><b>✅ 真相：</b> 它的核心功能是<b>「避險」</b>。對有現貨部位的投資者，它是管理風險的工具，如同為您的資產買保險。</p>
+                                </li>
+                                <li><b>❌ 迷思二：新手不能碰！</b>
+                                    <p class="font-normal text-sm mt-1"><b>✅ 真相：</b> 現在有<b>「小台指」、「微台指」</b>等小型合約，新手可在控制風險下逐步學習。從模擬交易開始，安全學習！</p>
+                                </li>
+                                <li><b>❌ 迷思三：只能做多！</b>
+                                    <p class="font-normal text-sm mt-1"><b>✅ 真相：</b> 期貨可以<b>「做多」也能「做空」</b>！無論市場漲跌，都有潛在的獲利與避險機會。熊市也能賺錢！😎</p>
+                                </li>
+                            </ul>
+                            <p class="text-gray-700 mt-4">
+                                掌握期貨，您就能在市場中更從容！
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Hedging Simulator -->
+                    <div class="mt-8 pt-6 border-t border-blue-200">
+                        <h4 class="text-xl font-bold text-center mb-2">📉 【避險模擬器】體驗期貨的威力</h4>
+                        <div class="text-center mb-6">
+                            <p class="text-gray-700 max-w-2xl mx-auto mb-4"><b>如何操作避險？</b>很簡單。當您預期市場下跌時，去「放空」(賣出)與您股票總市值等值的「指數期貨」。如此一來，股票虧損就能被期貨獲利所抵銷。</p>
+                            <p class="text-center text-gray-600 max-w-2xl mx-auto">現在，輸入您的資產價值和預期跌幅，看看有無期貨避險的驚人差異！</p>
+                        </div>
+                        <div class="max-w-xl mx-auto bg-white/50 p-6 rounded-lg shadow-inner">
+                            <div class="grid md:grid-cols-2 gap-4 mb-6">
+                                <div>
+                                    <label for="hedge-stock-value" class="block text-sm font-medium text-gray-700">您的股票總市值 (NT$)</label>
+                                    <input type="number" id="hedge-stock-value" value="1000000" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label for="hedge-market-decline" class="block text-sm font-medium text-gray-700">預期市場跌幅 (%)</label>
+                                    <input type="number" id="hedge-market-decline" value="10" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
+                                <!-- No Hedging -->
+                                <div class="bg-red-50 border border-red-200 p-4 rounded-lg">
+                                    <h5 class="text-lg font-bold text-red-800 mb-2">😱 無避險情境</h5>
+                                    <div class="text-left space-y-2 text-gray-700">
+                                        <p>股票初始價值: <span class="font-semibold float-right" id="no-hedge-initial">NT$ 1,000,000</span></p>
+                                        <p>股票市值損失: <span class="font-semibold text-red-600 float-right" id="no-hedge-loss">- NT$ 100,000</span></p>
+                                        <hr class="border-red-200 my-1">
+                                        <p class="text-lg">最終資產價值: <span class="font-bold text-red-700 float-right" id="no-hedge-final">NT$ 900,000</span></p>
+                                    </div>
+                                </div>
+                                <!-- With Hedging -->
+                                <div class="bg-green-50 border border-green-200 p-4 rounded-lg">
+                                    <h5 class="text-lg font-bold text-green-800 mb-2">🛡️ 有期貨避險情境</h5>
+                                    <div class="text-left space-y-2 text-gray-700">
+                                        <p>股票初始價值: <span class="font-semibold float-right" id="hedge-initial">NT$ 1,000,000</span></p>
+                                        <p>股票市值損失: <span class="font-semibold text-red-600 float-right" id="hedge-stock-loss">- NT$ 100,000</span></p>
+                                        <p>期貨空單獲利: <span class="font-semibold text-green-600 float-right" id="hedge-futures-profit">+ NT$ 100,000</span></p>
+                                        <hr class="border-green-200 my-1">
+                                        <p class="text-lg">最終資產價值: <span class="font-bold text-green-700 float-right" id="hedge-final">NT$ 1,000,000</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 text-center">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">準備好為您的資產，加上最強防護盾了嗎？</h4>
+                        <p class="text-gray-600 mb-4 max-w-2xl mx-auto">市場波動無法預測，但您的風險可以管理。無論是想保護資產，或在多頭市場放大獲利，期貨都是您不可或缺的工具。</p>
+                        <div class="flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                            <button id="open-tutorial-btn" class="w-full sm:w-auto px-6 py-3 font-semibold rounded-lg btn-primary">看「群益行動贏家」微台指下單教學</button>
+                            <a href="https://line.me/R/ti/p/@a6024" target="_blank" class="w-full sm:w-auto px-6 py-3 font-semibold rounded-lg btn-secondary">領取《新手期貨操作手冊》</a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Step 4: Robo Advisor (UPDATED) -->
+        <section id="step4" data-section>
+             <div class="step-card">
+                <h2 class="text-3xl font-bold text-center mb-2">Step 4: 打造您的專屬理財計畫</h2>
+                <p class="text-gray-600 text-center mb-8">將目標化為行動。設定您的理財目標與投入計畫，我們將根據您的風險屬性，模擬未來的可能性。</p>
+                
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <!-- Inputs -->
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <div class="space-y-4">
+                            <div>
+                                <h3 class="text-xl font-bold mb-3">1. 設定您的目標</h3>
+                                <label for="goal-type" class="block text-sm font-medium text-gray-700">您的理財目標是？</label>
+                                <select id="goal-type" class="robo-input mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500">
+                                    <option>快速存下第一桶金</option>
+                                    <option>提早退休</option>
+                                    <option>買房基金</option>
+                                    <option>子女教育基金</option>
+                                    <option>財富增值</option>
+                                </select>
+                                <label for="goal-amount" class="block text-sm font-medium text-gray-700 mt-4">目標金額 (NT$)</label>
+                                <input type="number" id="goal-amount" value="1000000" step="10000" class="robo-input mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500">
+                                <label for="goal-years" class="block text-sm font-medium text-gray-700 mt-4">預計達成年限</label>
+                                <input type="number" id="goal-years" value="10" class="robo-input mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500">
+                            </div>
+                            <div class="pt-4 border-t">
+                                <h3 class="text-xl font-bold mb-3">2. 規劃您的投入</h3>
+                                <label for="lump-sum" class="block text-sm font-medium text-gray-700">單筆投入金額 (NT$)</label>
+                                <input type="number" id="lump-sum" value="50000" step="1000" class="robo-input mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500">
+                                <label for="monthly-investment" class="block text-sm font-medium text-gray-700 mt-4">每月定期定額 (NT$)</label>
+                                <input type="number" id="monthly-investment" value="5000" step="500" class="robo-input mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results & Customization -->
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-xl font-bold mb-3 text-center">3. 您的投資組合配置</h3>
+                        <div id="robo-results-container">
+                            <div class="text-center p-4 bg-white rounded-lg shadow-inner">
+                                <p class="text-gray-600">計畫成功機率</p>
+                                <p id="success-probability" class="text-5xl font-bold text-teal-600 my-2">--%</p>
+                            </div>
+                            <div id="portfolio-customization" class="mt-4 space-y-3">
+                                <div class="text-center mb-4">
+                                    <p class="font-semibold text-lg">剩餘可分配比例: <span id="remaining-alloc-pct" class="text-teal-600">0%</span></p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium">保守型資產 (如債券)</label>
+                                    <div class="flex items-center">
+                                        <input type="number" id="conservative-alloc-input" class="w-full portfolio-alloc-input mt-1 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm" min="0" max="100" step="1">
+                                        <span class="ml-2 font-semibold">%</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium">穩健型資產 (如股債平衡ETF)</label>
+                                     <div class="flex items-center">
+                                        <input type="number" id="moderate-alloc-input" class="w-full portfolio-alloc-input mt-1 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm" min="0" max="100" step="1">
+                                        <span class="ml-2 font-semibold">%</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium">積極型資產 (如股票)</label>
+                                     <div class="flex items-center">
+                                        <input type="number" id="aggressive-alloc-input" class="w-full portfolio-alloc-input mt-1 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm" min="0" max="100" step="1">
+                                        <span class="ml-2 font-semibold">%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-center p-3 bg-white rounded-lg shadow-inner">
+                                <p class="text-gray-600 flex items-center justify-center">
+                                    綜合預期年化報酬率
+                                    <button id="rate-info-btn" class="ml-2 w-5 h-5 bg-gray-200 text-gray-600 rounded-full text-sm font-bold flex items-center justify-center hover:bg-gray-300 transition-colors">?</button>
+                                </p>
+                                <p id="combined-return-rate" class="text-2xl font-bold text-teal-600 my-1">--%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Chart -->
+                <div class="mt-8">
+                    <h3 class="text-2xl font-bold text-center mb-4">您的資產成長預測</h3>
+                    <div class="chart-container">
+                        <canvas id="asset-growth-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- NEW: Step 5 -->
+        <section id="step5" data-section>
+            <div class="step-card text-center">
+                <h2 class="text-3xl font-bold text-center mb-4">Step 5: 踏出真實的第一步</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-8">恭喜您完成所有學習！您對理財已有全面了解，是時候將知識轉化為行動了。</p>
+                <div class="flex flex-col md:flex-row justify-center items-center gap-6">
+                    <!-- Option A -->
+                    <div class="w-full md:w-1/2 bg-teal-50 p-6 rounded-lg border border-teal-200">
+                        <h3 class="text-xl font-bold text-teal-800 mb-3">我準備好了，想開始真實交易！</h3>
+                        <p class="text-gray-600 mb-4">立即開立期貨帳戶，將所學的避險與投資策略應用於真實市場。</p>
+                        <a href="https://goplus.capital.com.tw?Market=F&IBNO=2B50F0CB7BD457AC&EmpNo=FF76AA569B7CA1B4#Futures" target="_blank" class="inline-block px-8 py-3 font-semibold rounded-lg btn-primary">就是現在，立即線上開戶</a>
+                    </div>
+                    <!-- Option B -->
+                    <div class="w-full md:w-1/2 bg-blue-50 p-6 rounded-lg border border-blue-200">
+                        <h3 class="text-xl font-bold text-blue-800 mb-3">我想先了解更多市場資訊。</h3>
+                        <p class="text-gray-600 mb-4">加入我們的官方LINE，每日獲取專業的盤勢分析與交易策略。</p>
+                        <a href="https://line.me/R/ti/p/@a6024" target="_blank" class="inline-block px-8 py-3 font-semibold rounded-lg btn-secondary">加入LINE好友</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- UPDATED: LINE Integration Section -->
+        <section id="line-integration" class="text-center my-16 p-8 bg-green-100 rounded-lg shadow-lg">
+            <h2 class="text-3xl font-bold text-green-800 mb-4">加入我們的LINE，掌握期貨致勝先機！</h2>
+            <p class="text-lg text-green-700 max-w-3xl mx-auto mb-6">
+                想獲得即時的台指期盤勢分析，或有任何期貨疑問嗎？立即加入我們的LINE官方帳號，讓專業團隊成為您理財路上的神隊友！
+            </p>
+            <a href="https://line.me/R/ti/p/@a6024" target="_blank" class="inline-block px-8 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition-colors duration-300">
+                加入LINE好友，立即諮詢
+            </a>
+            <p class="text-sm text-green-600 mt-4">或搜尋 LINE ID: @a6024</p>
+        </section>
+        
+        <!-- Why Us Section -->
+        <section id="why-us" class="my-16">
+            <div class="container mx-auto px-4 text-center">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">為何選擇群益期貨？</h2>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto mb-12">選擇群益，理由只有三個：【頂尖工具】、【獨家報告】、【專業服務】，成為您最堅實的後盾。</p>
+                <div class="grid md:grid-cols-3 gap-8 text-left">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-bold text-teal-700 mb-3">1. 頂尖交易工具</h3>
+                        <p class="text-gray-600">最新群益贏家PRO、行動贏家等多款APP任您挑選，更有24小時交易室隨時待命，不怕斷線問題。</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-bold text-teal-700 mb-3">2. 獨家投顧報告</h3>
+                        <p class="text-gray-600">僅需百元費用，即享專業研究團隊的獨家報告，讓您的交易決策有更強數據後盾。</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-bold text-teal-700 mb-3">3. 您的專屬服務員</h3>
+                        <p class="text-gray-600">開戶後，您將有專屬服務員，親自教您操作系統，並迅速回答所有問題。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-white pt-10 pb-6">
+        <div class="container mx-auto px-4 text-center">
+            <img src="images/群益期貨logo.png" alt="群益期貨 Logo" class="h-10 mx-auto mb-6" onerror="this.onerror=null;this.src='https://placehold.co/200x50/1F2937/FFFFFF?text=Logo';">
+            <div class="text-xs text-gray-400 max-w-3xl mx-auto space-y-2">
+                <p>
+                    <span class="font-bold text-gray-300">【警語】</span>
+                    期貨交易具高風險，交易人應評估自身資金及風險承受能力，過去績效不保證未來獲利。
+                </p>
+                <p>
+                    公司名稱:群益期貨股份有限公司 | 公司地址: 台北市大安區敦化南路二段97號B1 | 公司電話: (02)2700-2888 | 114年金管期總字第006號
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Tool Detail Modal -->
+    <div id="tool-detail-modal-overlay" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-btn" id="close-tool-detail-modal" aria-label="關閉工具詳細資訊">&times;</button>
+            <div class="text-center mb-6">
+                <div id="tool-detail-icon" class="text-5xl mb-2"></div>
+                <h3 id="tool-detail-name" class="text-3xl font-bold text-gray-800"></h3>
+                <span id="tool-detail-risk" class="text-sm px-3 py-1 rounded-full font-medium mt-2 inline-block"></span>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <h4 class="text-xl font-semibold mb-2">優點</h4>
+                    <ul id="tool-detail-advantages" class="list-disc list-inside text-gray-700 space-y-1"></ul>
+                </div>
+                <div>
+                    <h4 class="text-xl font-semibold mb-2">缺點</h4>
+                    <ul id="tool-detail-disadvantages" class="list-disc list-inside text-gray-700 space-y-1"></ul>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h4 class="text-xl font-semibold mb-2">適合對象</h4>
+                <p id="tool-detail-suitable" class="text-gray-700"></p>
+            </div>
+
+            <div id="tool-detail-interactive-section" class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                <h4 id="interactive-section-title" class="text-xl font-semibold mb-3"></h4>
+                <div id="interactive-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="image-modal-overlay" class="modal-overlay">
+        <div class="modal-content image-modal-content">
+            <button class="close-btn" id="close-image-modal" aria-label="關閉圖片">&times;</button>
+            <img id="image-modal-img" src="" alt="ETF Information">
+        </div>
+    </div>
+    
+    <!-- Tutorial Gallery Modal -->
+    <div id="gallery-modal-overlay" class="modal-overlay">
+        <div class="modal-content gallery-modal-content relative">
+            <button class="close-btn" id="close-gallery-modal" aria-label="關閉教學">&times;</button>
+            <div class="w-full">
+                <h3 id="gallery-modal-title" class="text-xl font-bold text-center mb-4"></h3>
+                <div class="relative">
+                    <img id="gallery-modal-img" src="" alt="教學步驟" class="w-full rounded-lg shadow-lg">
+                    <button id="gallery-prev-btn" class="gallery-nav-btn">&lt;</button>
+                    <button id="gallery-next-btn" class="gallery-nav-btn">&gt;</button>
+                </div>
+                <p id="gallery-step-indicator" class="text-center mt-4 text-gray-600 font-semibold"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rate Info Modal -->
+    <div id="rate-info-modal-overlay" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-btn" id="close-rate-info-modal" aria-label="關閉說明">&times;</button>
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">預期報酬率說明</h3>
+            <div class="text-gray-700 space-y-4">
+                <p>為了提供您一個合理的資產成長模擬，我們參考了長期的市場數據與專業機構的研究，為不同風險等級的資產設定了以下的預期年化報酬率：</p>
+                <div class="p-4 bg-gray-50 rounded-lg">
+                    <p><b>• 積極型資產 (10%)：</b>主要參考全球股票市場的長期表現，例如 MSCI 世界指數過去數十年的平均年化報酬率約在 10% 左右。</p>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg">
+                    <p><b>• 穩健型資產 (7%)：</b>此為典型的「股債平衡」投資組合（如 60% 股票、40% 債券）的長期預期回報。股票部分提供成長潛力，債券部分則提供穩定性。</p>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg">
+                    <p><b>• 保守型資產 (3.5%)：</b>主要參考高品質的投資等級債券的長期平均殖利率，例如彭博全球綜合債券指數 (Bloomberg Global Aggregate Bond Index)。</p>
+                </div>
+                <div class="mt-4 p-4 bg-amber-50 border-l-4 border-amber-400 text-amber-800">
+                    <p><b>【重要提醒】</b></p>
+                    <p class="mt-2 text-sm">這些數字是基於歷史數據的長期平均值，僅作為模擬與教育用途，**絕不代表未來的實際報酬**。真實的投資報酬會因市場狀況、經濟環境及所選標的而有極大差異。過去的績效無法保證未來的獲利。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const appState = {
+        riskProfile: null, // 'conservative', 'moderate', 'aggressive'
+        progress: 0,
+        completedSections: new Set(),
+        portfolioAllocation: {
+            conservative: 34,
+            moderate: 33,
+            aggressive: 33,
+        }
+    };
+
+    const sections = document.querySelectorAll('[data-section]');
+    const navLinks = document.querySelectorAll('.nav-link');
+    const progressBar = document.getElementById('progress-bar');
+    const progressPercent = document.getElementById('progress-percent');
+    const badgesContainer = document.getElementById('badges-container');
+    
+    function updateProgress(sectionId) {
+        if (!appState.completedSections.has(sectionId)) {
+            appState.completedSections.add(sectionId);
+            const totalSections = sections.length;
+            appState.progress = Math.round((appState.completedSections.size / totalSections) * 100);
+            progressBar.style.width = `${appState.progress}%`;
+            progressPercent.textContent = `${appState.progress}%`;
+            updateBadges();
+        }
+    }
+
+    function updateBadges() {
+        let badgesHTML = '';
+        if (appState.completedSections.has('step1')) {
+            badgesHTML += '<span class="badge">💡 風險評估者</span>';
+        }
+        if (appState.completedSections.has('step2')) {
+            badgesHTML += '<span class="badge">💰 理財探險家</span>';
+        }
+        if (appState.completedSections.has('step3')) {
+            badgesHTML += '<span class="badge">🔍 工具探索家</span>';
+        }
+        if (appState.completedSections.has('step4')) {
+            badgesHTML += '<span class="badge">🚀 理財規劃師</span>';
+        }
+        if (appState.completedSections.has('step5')) {
+            badgesHTML += '<span class="badge">🏆 理財畢業生</span>';
+        }
+        badgesContainer.innerHTML = badgesHTML;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const id = entry.target.getAttribute('id');
+                updateProgress(id);
+                navLinks.forEach(link => {
+                    link.classList.toggle('active', link.getAttribute('href').substring(1) === id);
+                });
+            }
+        });
+    }, { threshold: 0.3 });
+
+    sections.forEach(section => observer.observe(section));
+
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileMenuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    document.querySelectorAll('#mobile-menu a, .nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+             if (!mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+    });
+
+    // --- 風險測驗開始 ---
+
+    const quizData = [
+        {
+            question: "假設您突然失去所有收入，目前的儲蓄大約可以支撐您多久的基本生活開銷？",
+            options: [
+                { text: "😰 少於 1 個月", score: 1 },
+                { text: "🤔 1 ~ 3 個月", score: 2 },
+                { text: "😊 3 ~ 6 個月", score: 3 },
+                { text: "😎 6 個月 ~ 1 年", score: 4 },
+                { text: "👑 1 年以上", score: 5 },
+            ],
+        },
+        {
+            question: "您平常的錢主要來自哪裡？",
+            options: [
+                { text: "👨‍👩‍👧‍👦 家人給的零用錢／生活費", score: 1 },
+                { text: "💼 打工收入（如餐廳、家教等）", score: 2 },
+                { text: "👔 正職薪水（朝九晚五 or 排班穩定）", score: 3 },
+                { text: "🎓 獎學金／政府補助", score: 4 },
+                { text: "🚀 自己接案或創業收入（自由接案、經營副業）", score: 5 },
+            ],
+        },
+        {
+            question: "請問您投資理財，最主要想達成的財務目標是什麼？",
+            options: [
+                { text: "🏦 對抗通貨膨脹，希望資產不要縮水", score: 1 },
+                { text: "💸 賺取額外收入，增加每月的可用現金流", score: 2 },
+                { text: "🧺 準備中期目標，例如買房頭期款、創業基金 (3-10年)", score: 3 },
+                { text: "📈 規劃長期目標，例如退休金、子女教育基金 (10年以上)", score: 4 },
+                { text: "🚀 追求財富自由，希望能盡早達成，不再為錢工作", score: 5 },
+            ],
+        },
+        {
+            question: "請問您對這筆資金的投資，預計的持有時間是多久？",
+            options: [
+                { text: "🧪 少於 1 年 (對應短期交易、資金週轉)", score: 1 },
+                { text: "⏳ 1 ~ 3 年 (對應短期儲蓄、目標)", score: 2 },
+                { text: "🧭 3 ~ 5 年 (對應中期規劃，如進修、換車)", score: 3 },
+                { text: "🌳 5 ~ 10 年 (對應中長期規劃，如頭期款)", score: 4 },
+                { text: "🚀 10 年以上 (對應長期規劃，如退休、子女教育)", score: 5 },
+            ],
+        },
+        {
+            question: "如果您投資 1 萬元，短期內虧損多少您還能接受？",
+            options: [
+                { text: "😰 虧損超過 1,000 元我就會想出場（-10%）", score: 1 },
+                { text: "😟 虧損 1,500 元以內還可以接受（-15%）", score: 2 },
+                { text: "😐 虧到 2,000 元我會觀察一下（-20%）", score: 3 },
+                { text: "🙂 虧 2,500 元我也不會太緊張（-25%）", score: 4 },
+                { text: "😎 虧損超過 2,500 元我都能淡定面對（超過 -25%）", score: 5 },
+            ],
+        },
+        {
+            question: "如果您發現投資帳戶出現虧損，您的第一反應會是？",
+            options: [
+                { text: "😨 「慘了我要賣掉！」 一看到虧損就想立刻賣出", score: 1 },
+                { text: "😟 「心好慌...」 會焦慮、會一直盯盤，但還是先放著", score: 2 },
+                { text: "😐 「先觀察一下吧」 覺得市場有起有落，先不急著賣", score: 3 },
+                { text: "🙂 「這只是短期波動」 已經預期會漲漲跌跌，不太在意", score: 4 },
+                { text: "😎 「便宜耶！加碼！」 市場跌反而想加碼、覺得是機會", score: 5 },
+            ],
+        },
+        {
+            question: "您覺得自己有多懂理財？",
+            options: [
+                { text: "😵 完全不懂，理財離我好遠...", score: 1 },
+                { text: "🤔 聽過一些，但還沒開始做", score: 2 },
+                { text: "📝 有試著記帳／存錢，但沒規劃方向", score: 3 },
+                { text: "📊 會分配收入，偶爾看看 ETF 或基金", score: 4 },
+                { text: "🧩 我有自己的理財策略，也開始配置資產了", score: 5 },
+            ],
+        },
+        {
+            question: "您目前最多錢是投在哪一類？",
+            options: [
+                { text: "🏦 都是放銀行、買儲蓄險（低風險）", score: 1 },
+                { text: "🧩 有買債券、比較穩定的基金", score: 2 },
+                { text: "⚖️ 比較平均，什麼都碰一點", score: 3 },
+                { text: "📈 股票、ETF 比較多", score: 4 },
+                { text: "🎰 期貨、選擇權、幣圈我都玩過", score: 5 },
+            ],
+        },
+        {
+            question: "您曾經投入 「股票、基金或股票ETF」 的金額大約是多少？",
+            options: [
+                { text: "🆕 完全沒投資過／不知道這是什麼", score: 1 },
+                { text: "💡 試過一點點（少於 NT$10,000）", score: 2 },
+                { text: "📈 投入過 NT$10,000～30,000（可能是定期定額或一次投入）", score: 3 },
+                { text: "🧱 投入過 NT$30,001～100,000（比較認真規劃）", score: 4 },
+                { text: "💼 超過 NT$100,000（長期當成資產配置一部分）", score: 5 },
+            ],
+        },
+        {
+            // 修正：將問題中的條列項目前加上 <br> 換行，確保格式正確
+            question: "關於您跟理財／金融的接觸經歷，您符合下列幾項？<br><br><div class='text-left text-base font-normal pl-4 space-y-2'> <p>(1) 曾在金融業（如保險、證券、會計）打過工或實習</p> <p>(2) 拿過金融證照（如證券、信託、理財規劃）</p> <p>(3) 上過理財課、投資講座、或有參加金融社團</p> <p>(4) 是商學院或財經相關科系的學生</p> </div>",
+            options: [
+                { text: "0 項 👉 完全小白", score: 1 },
+                { text: "1 項 👉 有一點點經驗", score: 2 },
+                { text: "2 項 👉 還算熟悉", score: 3 },
+                { text: "3 項 👉 您很有概念喔", score: 4 },
+                { text: "4 項 👉 專業級年輕人！", score: 5 },
+            ],
+        },
+    ];
+
+    const riskProfileData = {
+        conservative: {
+            type: "保守型",
+            desc: "您重視本金安全，對市場波動的容忍度較低，投資目標以保值和穩定收益為主。",
+            tools: "定存、儲蓄險、貨幣型基金、投資等級債券",
+            allocation: { conservative: 80, moderate: 20, aggressive: 0 },
+            rates: { conservative: 0.035, moderate: 0.07, aggressive: 0.10 }
+        },
+        moderate: {
+            type: "穩健型",
+            desc: "您願意為了追求長期穩定的成長而承擔中度風險，尋求在風險與報酬之間取得平衡。",
+            tools: "股票型 ETF、平衡型基金、債券型基金",
+            allocation: { conservative: 30, moderate: 50, aggressive: 20 },
+            rates: { conservative: 0.035, moderate: 0.07, aggressive: 0.10 }
+        },
+        aggressive: {
+            type: "積極型",
+            desc: "您不畏懼風險，願意承受較大的市場波動以換取更高的獲利機會，投資目標為資本的最大化增長。",
+            tools: "成長股、主題式ETF、期貨、加密貨幣",
+            allocation: { conservative: 10, moderate: 40, aggressive: 50 },
+            rates: { conservative: 0.035, moderate: 0.07, aggressive: 0.10 }
+        },
+    };
+
+    let currentQuestionIndex = 0;
+    const userAnswers = [];
+    const quizQuestionContainer = document.getElementById('quiz-question-container');
+    const prevBtn = document.getElementById('prev-question');
+    const nextBtn = document.getElementById('next-question');
+    const questionIndicator = document.getElementById('question-indicator');
+
+    function renderQuestion() {
+        const questionData = quizData[currentQuestionIndex];
+        let optionsHTML = '';
+        questionData.options.forEach((opt) => {
+            const isSelected = userAnswers[currentQuestionIndex] === opt.score;
+            optionsHTML += `<div class="quiz-option border-2 p-4 rounded-lg cursor-pointer hover:bg-gray-100 ${isSelected ? 'selected' : ''}" data-score="${opt.score}">
+                <p class="font-semibold">${opt.text}</p>
+            </div>`;
+        });
+        // 修正：將問題容器從 h4 改為 div，以正確容納 HTML 格式
+        quizQuestionContainer.innerHTML = `
+            <div class="text-lg font-semibold mb-4">${currentQuestionIndex + 1}. ${questionData.question}</div>
+            <div class="space-y-3">${optionsHTML}</div>
+        `;
+        questionIndicator.textContent = `${currentQuestionIndex + 1} / ${quizData.length}`;
+        updateQuizNav();
+        
+        document.querySelectorAll('.quiz-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                userAnswers[currentQuestionIndex] = parseInt(e.currentTarget.dataset.score);
+                renderQuestion(); 
+            });
+        });
+    }
+
+    function updateQuizNav() {
+        prevBtn.disabled = currentQuestionIndex === 0;
+        nextBtn.disabled = userAnswers[currentQuestionIndex] === undefined || userAnswers[currentQuestionIndex] === null;
+        if (currentQuestionIndex === quizData.length - 1) {
+            nextBtn.textContent = '看結果';
+        } else {
+            nextBtn.textContent = '下一題';
+        }
+    }
+
+    prevBtn.addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            renderQuestion();
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentQuestionIndex < quizData.length - 1) {
+            currentQuestionIndex++;
+            renderQuestion();
+        } else {
+            calculateAndShowResult();
+        }
+    });
+
+    function calculateAndShowResult() {
+        const totalScore = userAnswers.reduce((sum, score) => sum + score, 0);
+
+        let riskType = '';
+        if (totalScore <= 23) {
+            riskType = 'conservative';
+        } else if (totalScore <= 37) {
+            riskType = 'moderate';
+        } else {
+            riskType = 'aggressive';
+        }
+        appState.riskProfile = riskType;
+
+        const profile = riskProfileData[riskType];
+        document.getElementById('result-type').textContent = profile.type;
+        document.getElementById('result-desc').textContent = profile.desc;
+        document.getElementById('result-tools').textContent = profile.tools;
+        
+        const allocation = profile.allocation;
+        document.getElementById('result-allocation').innerHTML = `
+            保守型: <span class="font-bold text-teal-700">${allocation.conservative}%</span> | 
+            穩健型: <span class="font-bold text-teal-700">${allocation.moderate}%</span> | 
+            積極型: <span class="font-bold text-teal-700">${allocation.aggressive}%</span>
+        `;
+
+        document.getElementById('risk-quiz').classList.add('hidden');
+        document.getElementById('risk-result').classList.remove('hidden');
+
+        setPortfolioAllocation(riskType);
+    }
+    
+    document.getElementById('retake-quiz').addEventListener('click', () => {
+        currentQuestionIndex = 0;
+        userAnswers.length = 0;
+        appState.riskProfile = null;
+        document.getElementById('risk-result').classList.add('hidden');
+        document.getElementById('risk-quiz').classList.remove('hidden');
+        renderQuestion();
+        setPortfolioAllocation(null);
+    });
+
+    renderQuestion();
+
+    // --- Oracle Card Game Logic ---
+    const oracleCardsContainer = document.getElementById('oracle-cards-container');
+    const oracleResultContainer = document.getElementById('oracle-result-container');
+    const oracleInstruction = document.getElementById('oracle-instruction');
+    const oracleRedrawBtn = document.getElementById('oracle-redraw-btn');
+    
+    const oracleCardData = [
+        {
+            emoji: '🐿️',
+            title: '謹慎的松鼠',
+            analysis: '你擅長儲蓄、積穀防饑，對金錢很有安全感。但有時過於保守，可能會錯過讓資產成長的機會。',
+            guidance: '神諭指引：你的儲蓄習慣很棒！今年試著將 10% 的儲蓄投入到穩健的 ETF 中，讓你的果實為你長出更多果實吧！'
+        },
+        {
+            emoji: '🦅',
+            title: '無畏的獵鷹',
+            analysis: '你眼光精準、勇于冒險，不畏懼風險，並相信高風險能帶來高回報。但要小心，有時可能會過於衝動。',
+            guidance: '神諭指引：你的勇氣可嘉！今年在追逐高回報的同時，記得設定好停損點，為你的冒險加上一層保護網。'
+        },
+        {
+            emoji: '🐝',
+            title: '勤奮的蜜蜂',
+            analysis: '你擅長透過多元管道增加收入，像蜜蜂一樣勤勞地累積財富，積少成多。但有時可能會因為太忙而忽略了理財規劃。',
+            guidance: '神諭指引：你的辛勤終將回報！今年試著設定一個每月自動扣款的定期定額投資，讓你的財富也能自動工作。'
+        },
+        {
+            emoji: '🕊️',
+            title: '智慧的白鴿',
+            analysis: '你善於收集資訊，做出理性的判斷，不喜歡人云亦云。但在資訊爆炸的時代，有時可能會因為想太多而猶豫不決。',
+            guidance: '神諭指引：你的智慧是最大資產！今年相信你的判斷，勇敢踏出第一步，選擇一個你看好的領域開始小額投資吧！'
+        }
+    ];
+
+    function setupOracleGame() {
+        oracleCardsContainer.innerHTML = '';
+        oracleResultContainer.classList.add('hidden');
+        oracleCardsContainer.classList.remove('hidden');
+        oracleInstruction.classList.remove('hidden');
+
+        const cardBacks = ['🌟', '🌙', '☀️', '🪐'];
+        const shuffledData = [...oracleCardData].sort(() => 0.5 - Math.random());
+
+        shuffledData.forEach((cardData, index) => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'oracle-card';
+            cardEl.innerHTML = `
+                <div class="oracle-card-inner">
+                    <div class="oracle-card-back">${cardBacks[index]}</div>
+                    <div class="oracle-card-front p-2">
+                        <div class="text-4xl">${cardData.emoji}</div>
+                        <h5 class="font-bold text-sm mt-2">${cardData.title}</h5>
+                    </div>
+                </div>
+            `;
+            cardEl.addEventListener('click', () => revealOracleCard(cardEl, cardData), { once: true });
+            oracleCardsContainer.appendChild(cardEl);
+        });
+    }
+
+    function revealOracleCard(cardEl, cardData) {
+        document.querySelectorAll('.oracle-card').forEach(c => c.style.pointerEvents = 'none');
+        cardEl.classList.add('flipped');
+
+        setTimeout(() => {
+            document.getElementById('oracle-result-emoji').textContent = cardData.emoji;
+            document.getElementById('oracle-result-title').textContent = cardData.title;
+            document.getElementById('oracle-result-analysis').textContent = cardData.analysis;
+            document.getElementById('oracle-result-guidance').textContent = cardData.guidance;
+            
+            oracleCardsContainer.classList.add('hidden');
+            oracleInstruction.classList.add('hidden');
+            oracleResultContainer.classList.remove('hidden');
+        }, 600);
+    }
+
+    oracleRedrawBtn.addEventListener('click', setupOracleGame);
+    setupOracleGame();
+
+    // --- Swipe to Save Game Logic ---
+    const swipeCardStack = document.getElementById('swipe-card-stack');
+    const swipeGameContainer = document.getElementById('swipe-game-container');
+    const swipeResultContainer = document.getElementById('swipe-result-container');
+    const passBtn = document.getElementById('pass-btn');
+    const buyBtn = document.getElementById('buy-btn');
+    const swipeRestartBtn = document.getElementById('swipe-restart-btn');
+
+    const swipeCardData = [
+        { item: '最新款 AirPods', cost: 7490, emoji: '🎧' },
+        { item: '週末電影票+爆米花', cost: 500, emoji: '🍿' },
+        { item: '信義區酒吧喝一杯', cost: 400, emoji: '🍸' },
+        { item: '限量版聯名球鞋', cost: 5800, emoji: '👟' },
+        { item: '手遊課金一單', cost: 2990, emoji: '🎮' },
+        { item: '燒肉吃到飽大餐', cost: 1500, emoji: '🍖' },
+        { item: 'Netflix 月費', cost: 390, emoji: '📺' },
+        { item: '週末計程車費', cost: 350, emoji: '🚕' },
+        { item: '一杯手搖飲', cost: 70, emoji: '🥤' },
+        { item: '網購一件新衣服', cost: 1200, emoji: '👕' },
+        { item: '演唱會門票', cost: 3800, emoji: '🎤' },
+        { item: '週末小旅行', cost: 6000, emoji: '🏕️' },
+        { item: '最新款手機殼', cost: 800, emoji: '📱' },
+        { item: '外送下午茶', cost: 250, emoji: '🍰' },
+        { item: '健身房單次入場', cost: 500, emoji: '💪' },
+        { item: '一堂線上課程', cost: 1500, emoji: '📚' },
+        { item: '剪髮+染髮', cost: 3000, emoji: '💇‍♀️' },
+        { item: '跟朋友去KTV', cost: 800, emoji: '🎶' },
+        { item: '買一本新書', cost: 450, emoji: '📖' },
+        { item: '捐款給慈善機構', cost: 300, emoji: '💖' }
+    ];
+
+    let currentSwipeCardIndex;
+    let savedAmount;
+    let passedCount;
+    let activeSwipeCards = [];
+
+    function setupSwipeGame() {
+        currentSwipeCardIndex = 0;
+        savedAmount = 0;
+        passedCount = 0;
+        swipeGameContainer.classList.remove('hidden');
+        swipeResultContainer.classList.add('hidden');
+        
+        const shuffled = [...swipeCardData].sort(() => 0.5 - Math.random());
+        activeSwipeCards = shuffled.slice(0, 10);
+        renderSwipeCards(activeSwipeCards);
+    }
+
+    function renderSwipeCards(cards) {
+        swipeCardStack.innerHTML = '';
+        cards.forEach((card, index) => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'swipe-card';
+            cardEl.style.zIndex = cards.length - index;
+            cardEl.style.transform = `translateY(${index * -4}px) scale(${1 - index * 0.05})`;
+            cardEl.innerHTML = `
+                <div class="text-4xl">${card.emoji}</div>
+                <p class="font-bold mt-2">${card.item}</p>
+                <p class="text-gray-600">NT$ ${card.cost.toLocaleString()}</p>
+            `;
+            swipeCardStack.appendChild(cardEl);
+        });
+    }
+
+    function handleSwipe(action) {
+        const cards = swipeCardStack.querySelectorAll('.swipe-card');
+        if (currentSwipeCardIndex >= cards.length) return;
+
+        const cardData = activeSwipeCards[currentSwipeCardIndex];
+        const cardEl = cards[currentSwipeCardIndex];
+
+        if (action === 'pass') {
+            savedAmount += cardData.cost;
+            passedCount++;
+            cardEl.style.transform = 'translateX(-150%) rotate(-15deg)';
+        } else {
+            cardEl.style.transform = 'translateX(150%) rotate(15deg)';
+        }
+        cardEl.style.opacity = '0';
+
+        currentSwipeCardIndex++;
+
+        for (let i = currentSwipeCardIndex; i < cards.length; i++) {
+            const card = cards[i];
+            const relativeIndex = i - currentSwipeCardIndex;
+            card.style.transform = `translateY(${relativeIndex * -4}px) scale(${1 - relativeIndex * 0.05})`;
+        }
+
+        if (currentSwipeCardIndex >= cards.length) {
+            setTimeout(showSwipeResults, 300);
+        }
+    }
+    
+    function showSwipeResults() {
+        const investedSavedAmount = savedAmount * 1.07;
+        document.getElementById('passed-count').textContent = passedCount;
+        document.getElementById('saved-amount').textContent = savedAmount.toLocaleString();
+        document.getElementById('invested-saved-amount').textContent = `NT$ ${Math.round(investedSavedAmount).toLocaleString()}`;
+        swipeGameContainer.classList.add('hidden');
+        swipeResultContainer.classList.remove('hidden');
+    }
+
+    passBtn.addEventListener('click', () => handleSwipe('pass'));
+    buyBtn.addEventListener('click', () => handleSwipe('buy'));
+    swipeRestartBtn.addEventListener('click', setupSwipeGame);
+    setupSwipeGame();
+
+    const investmentTools = [
+        {
+            name: "數位活存", risk: "低", icon: "📱",
+            brief: "高利活存，手機操作",
+            details: {
+                advantages: ["隨時存取，靈活性高", "利率優於傳統活存", "操作便捷，無實體存摺"],
+                disadvantages: ["利率仍低於通膨", "收益有限，難以對抗資產縮水"],
+                suitableFor: "短期資金停泊、緊急備用金",
+                interactive: {
+                    type: "interest_calculator",
+                    title: "活存利息計算 (年)",
+                    content: `
+                        <div class="space-y-3">
+                            <div>
+                                <label for="interest-amount" class="block text-sm font-medium text-gray-700">輸入金額 (NT$)</label>
+                                <input type="number" id="interest-amount" placeholder="例如: 100000" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500">
+                            </div>
+                            <div>
+                                <label for="interest-rate" class="block text-sm font-medium text-gray-700">年利率 (%)</label>
+                                <input type="number" id="interest-rate" value="1.0" step="0.1" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500">
+                            </div>
+                            <p id="interest-result" class="mt-2 font-bold h-6"></p>
+                        </div>
+                    `
+                }
+            }
+        },
+        {
+            name: "債券ETF", risk: "低", icon: "⚖️",
+            brief: "定期配息，風險穩健",
+            details: {
+                advantages: ["風險相對較低，波動小", "定期配息提供現金流", "分散投資多種債券"],
+                disadvantages: ["收益率通常較低", "利率上升可能導致價格下跌"],
+                suitableFor: "穩健型投資者、尋求固定收益者",
+                interactive: {
+                    type: "text_info",
+                    title: "債券ETF運作說明",
+                    content: `
+                        <p class="text-gray-700">債券ETF的價格波動較小，主要收益來自於定期配息。它投資於一籃子債券，有助於分散風險。當市場利率上升時，新發行的債券會提供更高的收益率，這會使得市場上已有的、收益率較低的舊債券吸引力下降，從而導致債券ETF的價格下跌；反之，利率下降則可能使價格上漲。</p>
+                        <p class="text-gray-700 mt-2">債券ETF是追求穩定收益和較低風險的投資者理想選擇。</p>
+                    `
+                }
+            }
+        },
+        {
+            name: "股票", risk: "高", icon: "📈",
+            brief: "高風險高報酬",
+            details: {
+                advantages: ["潛在報酬高，可能快速獲利", "參與公司成長，分享經營成果", "交易靈活，買賣方便"],
+                disadvantages: ["波動大，風險高，可能快速虧損本金", "需要深入研究公司基本面和產業趨勢", "市場消息面影響大"],
+                suitableFor: "積極型投資者、有時間和能力研究個股者、願意承受較高風險者",
+                interactive: {
+                    type: "profit_calculator",
+                    title: "股票損益計算",
+                    content: `
+                        <div class="space-y-3">
+                            <div>
+                                <label for="stock-buy-price" class="block text-sm font-medium text-gray-700">買入價格 (NT$)</label>
+                                <input type="number" id="stock-buy-price" placeholder="例如: 100" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500">
+                            </div>
+                            <div>
+                                <label for="stock-sell-price" class="block text-sm font-medium text-gray-700">賣出價格 (NT$)</label>
+                                <input type="number" id="stock-sell-price" placeholder="例如: 110" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500">
+                            </div>
+                            <div>
+                                <label for="stock-shares" class="block text-sm font-medium text-gray-700">股數 (單位: 股)</label>
+                                <input type="number" id="stock-shares" placeholder="例如: 1000" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500">
+                            </div>
+                            <p id="stock-profit-result" class="mt-2 font-bold h-6"></p>
+                        </div>
+                    `
+                }
+            }
+        },
+        {
+            name: "股票ETF", risk: "中", icon: "🧺",
+            brief: "分散風險，免選股",
+            details: {
+                advantages: ["分散投資，降低個股風險", "交易方便，像股票一樣買賣", "費用率通常較低，透明度高"],
+                disadvantages: ["無法超越大盤表現，只能賺取市場平均報酬", "仍受市場系統性風險影響", "部分特定主題ETF波動可能較大"],
+                suitableFor: "穩健型投資者、追求市場平均報酬者、不擅長選股者",
+                interactive: {
+                    type: "dca_future_value_calculator",
+                    title: "定期定額未來價值模擬",
+                    content: `
+                        <div class="space-y-3 mb-6">
+                            <div>
+                                <label for="dca-monthly-amount" class="block text-sm font-medium text-gray-700">每月投入金額 (NT$)</label>
+                                <input type="number" id="dca-monthly-amount" value="3000" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500">
+                            </div>
+                            <div>
+                                <label for="dca-years" class="block text-sm font-medium text-gray-700">預計投資年數</label>
+                                <input type="number" id="dca-years" value="10" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500">
+                            </div>
+                            <div>
+                                <label for="dca-annual-rate" class="block text-sm font-medium text-gray-700">預期年化報酬率 (%)</label>
+                                <input type="number" id="dca-annual-rate" value="7.0" step="0.1" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500">
+                            </div>
+                            <p id="dca-total-invested-result" class="mt-4 text-base font-semibold text-gray-700"></p>
+                            <p id="dca-future-value-result" class="mt-2 text-xl font-bold text-teal-600"></p>
+                        </div>
+                    `
+                }
+            }
+        },
+        {
+            name: "基金", risk: "中", icon: "🧑‍💼",
+            brief: "專人管理，多元標的",
+            details: {
+                advantages: ["專業經理人管理，省去研究時間", "投資範圍廣泛，可跨國、跨產業、跨資產配置", "小額資金即可參與多種投資標的"],
+                disadvantages: ["管理費和手續費通常較高", "績效依賴經理人能力，可能跑輸大盤", "贖回有時效性，資金無法即時取回"],
+                suitableFor: "穩健型投資者、希望專業代操者、缺乏時間研究市場者",
+                interactive: {
+                    type: "text_info",
+                    title: "基金運作說明",
+                    content: `
+                        <p class="text-gray-700">基金是由一群投資人的資金匯集而成，交由專業經理人代為操作，投資於股票、債券、貨幣等多元資產。基金的種類繁多，可以根據投資目標和風險承受能力選擇適合的類型。</p>
+                        <p class="text-gray-700 mt-2">雖然基金有管理費用，但對於沒有時間或專業知識研究市場的投資者來說，透過專業管理來達到資產增值是一個不錯的選擇。</p>
+                    `
+                }
+            }
+        },
+        {
+            name: "期貨", risk: "高", icon: "🚀",
+            brief: "槓桿操作，挑戰性高",
+            details: {
+                advantages: ["高槓桿，潛在報酬高，可能快速獲利", "多空皆可操作，無論漲跌都有獲利機會", "交易成本相對低，流動性高"],
+                disadvantages: ["風險極高，可能快速虧損甚至超過本金", "需要嚴格的風險控制和停損紀律", "保證金追繳壓力，市場波動大時可能面臨強制平倉"],
+                suitableFor: "經驗豐富的積極型投資者、有能力承受巨大風險者、對市場有深入理解者",
+                interactive: {
+                    type: "futures_calculator",
+                    title: "期貨槓桿與損益模擬",
+                    content: `
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="futures-type-modal" class="block text-sm font-medium text-gray-700">選擇期貨合約</label>
+                                    <select id="futures-type-modal" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                        <option value="200" data-margin="357000">大台指 (1點=200元)</option>
+                                        <option value="50" data-margin="89250" selected>小台指 (1點=50元)</option>
+                                        <option value="10" data-margin="17850">微型臺指 (1點=10元)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="futures-index-price-modal" class="block text-sm font-medium text-gray-700">當時指數價格</label>
+                                    <input type="number" id="futures-index-price-modal" value="23000" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                                </div>
+                            </div>
+                             <div>
+                                <label for="futures-points-modal" class="block text-sm font-medium text-gray-700">預期指數變動點數 (可為負數)</label>
+                                <input type="number" id="futures-points-modal" placeholder="例如: 100 或 -100" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                            </div>
+                            <div class="bg-gray-100 p-4 rounded-lg space-y-2 text-sm">
+                                <p>原始保證金: <span class="font-semibold float-right" id="futures-margin-modal"></span></p>
+                                <p>合約總價值: <span class="font-semibold float-right" id="futures-contract-value-modal"></span></p>
+                                <p>操作槓桿倍數: <span class="font-semibold float-right text-amber-600" id="futures-leverage-modal"></span></p>
+                                <hr>
+                                <p class="text-base">預估損益: <span class="font-bold float-right" id="futures-result-modal"></span></p>
+                                <p class="text-base">保證金報酬率: <span class="font-bold float-right" id="futures-roi-modal"></span></p>
+                            </div>
+                            <p class="text-xs text-gray-500 text-center">保證金金額為撰寫當下之參考值，實際金額請依期交所公告為準。</p>
+                        </div>
+                    `
+                }
+            }
+        }
+    ];
+    const toolsContainer = document.getElementById('investment-tools-container');
+    toolsContainer.innerHTML = investmentTools.map((tool, index) => `
+        <div class="p-3 border-2 rounded-lg bg-white cursor-pointer hover:shadow-md hover:-translate-y-1 transition-all" data-index="${index}">
+            <div class="text-4xl mb-2">${tool.icon}</div>
+            <p class="font-bold">${tool.name}</p>
+            <p class="text-xs text-gray-500 mb-1">${tool.brief}</p>
+            <span class="text-xs px-2 py-0.5 rounded-full ${tool.risk === '低' ? 'bg-green-100 text-green-800' : tool.risk === '中' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}">${tool.risk}風險</span>
+        </div>
+    `).join('');
+
+    const toolDetailModalOverlay = document.getElementById('tool-detail-modal-overlay');
+    const closeToolDetailModalBtn = document.getElementById('close-tool-detail-modal');
+    const toolDetailIcon = document.getElementById('tool-detail-icon');
+    const toolDetailName = document.getElementById('tool-detail-name');
+    const toolDetailRisk = document.getElementById('tool-detail-risk');
+    const toolDetailAdvantages = document.getElementById('tool-detail-advantages');
+    const toolDetailDisadvantages = document.getElementById('tool-detail-disadvantages');
+    const toolDetailSuitable = document.getElementById('tool-detail-suitable');
+    const interactiveSectionTitle = document.getElementById('interactive-section-title');
+    const interactiveContent = document.getElementById('interactive-content');
+
+    function showToolDetails(index) {
+        const tool = investmentTools[index];
+        toolDetailIcon.textContent = tool.icon;
+        toolDetailName.textContent = tool.name;
+        toolDetailRisk.textContent = `${tool.risk}風險`;
+        toolDetailRisk.className = `text-sm px-3 py-1 rounded-full font-medium mt-2 inline-block ${tool.risk === '低' ? 'bg-green-100 text-green-800' : tool.risk === '中' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`;
+
+        toolDetailAdvantages.innerHTML = tool.details.advantages.map(adv => `<li>${adv}</li>`).join('');
+        toolDetailDisadvantages.innerHTML = tool.details.disadvantages.map(disadv => `<li>${disadv}</li>`).join('');
+        toolDetailSuitable.textContent = tool.details.suitableFor;
+
+        interactiveSectionTitle.textContent = tool.details.interactive.title;
+        interactiveContent.innerHTML = tool.details.interactive.content;
+
+        if (tool.details.interactive.type === 'interest_calculator') {
+            const amountInput = document.getElementById('interest-amount');
+            const rateInput = document.getElementById('interest-rate');
+            const resultDisplay = document.getElementById('interest-result');
+
+            const calculateInterest = () => {
+                const amount = parseFloat(amountInput.value);
+                const rate = parseFloat(rateInput.value) / 100;
+                if (!isNaN(amount) && !isNaN(rate)) {
+                    const interest = amount * rate;
+                    resultDisplay.textContent = `預估年利息: NT$ ${interest.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+                    resultDisplay.style.color = interest >= 0 ? '#10B981' : '#EF4444';
+                } else {
+                    resultDisplay.textContent = '';
+                }
+            };
+            amountInput.addEventListener('input', calculateInterest);
+            rateInput.addEventListener('input', calculateInterest);
+            calculateInterest();
+        } else if (tool.details.interactive.type === 'profit_calculator') {
+            const buyPriceInput = document.getElementById('stock-buy-price');
+            const sellPriceInput = document.getElementById('stock-sell-price');
+            const sharesInput = document.getElementById('stock-shares');
+            const resultDisplay = document.getElementById('stock-profit-result');
+
+            const calculateProfit = () => {
+                const buyPrice = parseFloat(buyPriceInput.value);
+                const sellPrice = parseFloat(sellPriceInput.value);
+                const shares = parseFloat(sharesInput.value);
+                if (!isNaN(buyPrice) && !isNaN(sellPrice) && !isNaN(shares)) {
+                    const profit = (sellPrice - buyPrice) * shares;
+                    resultDisplay.textContent = `預估損益: NT$ ${profit.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+                    resultDisplay.style.color = profit >= 0 ? '#10B981' : '#EF4444';
+                } else {
+                    resultDisplay.textContent = '';
+                }
+            };
+            buyPriceInput.addEventListener('input', calculateProfit);
+            sellPriceInput.addEventListener('input', calculateProfit);
+            sharesInput.addEventListener('input', calculateProfit);
+            calculateProfit();
+        } else if (tool.details.interactive.type === 'futures_calculator') {
+            const futuresTypeModal = document.getElementById('futures-type-modal');
+            const futuresIndexPriceModal = document.getElementById('futures-index-price-modal');
+            const futuresPointsModal = document.getElementById('futures-points-modal');
+            const futuresResultModal = document.getElementById('futures-result-modal');
+            const futuresMarginModal = document.getElementById('futures-margin-modal');
+            const futuresContractValueModal = document.getElementById('futures-contract-value-modal');
+            const futuresLeverageModal = document.getElementById('futures-leverage-modal');
+            const futuresRoiModal = document.getElementById('futures-roi-modal');
+
+            const calculateFuturesModal = () => {
+                const selectedOption = futuresTypeModal.options[futuresTypeModal.selectedIndex];
+                const pointValue = parseFloat(selectedOption.value);
+                const margin = parseFloat(selectedOption.dataset.margin);
+                
+                const indexPrice = parseFloat(futuresIndexPriceModal.value) || 0;
+                const pointsChange = parseFloat(futuresPointsModal.value) || 0;
+
+                const contractValue = indexPrice * pointValue;
+                const leverage = contractValue / margin;
+                const profitOrLoss = pointsChange * pointValue;
+                const returnOnMargin = (profitOrLoss / margin) * 100;
+
+                futuresMarginModal.textContent = `NT$ ${margin.toLocaleString()}`;
+                futuresContractValueModal.textContent = `NT$ ${contractValue.toLocaleString()}`;
+                futuresLeverageModal.textContent = `${leverage.toFixed(1)} 倍`;
+                
+                if (pointsChange !== 0) {
+                    futuresResultModal.textContent = `NT$ ${profitOrLoss.toLocaleString()}`;
+                    futuresResultModal.style.color = profitOrLoss >= 0 ? '#10B981' : '#EF4444';
+                    futuresRoiModal.textContent = `${returnOnMargin.toFixed(2)}%`;
+                    futuresRoiModal.style.color = returnOnMargin >= 0 ? '#10B981' : '#EF4444';
+                } else {
+                    futuresResultModal.textContent = '---';
+                    futuresResultModal.style.color = 'inherit';
+                    futuresRoiModal.textContent = '---';
+                    futuresRoiModal.style.color = 'inherit';
+                }
+            };
+            
+            futuresTypeModal.addEventListener('change', calculateFuturesModal);
+            futuresIndexPriceModal.addEventListener('input', calculateFuturesModal);
+            futuresPointsModal.addEventListener('input', calculateFuturesModal);
+            calculateFuturesModal(); // Initial calculation
+        } else if (tool.details.interactive.type === 'dca_future_value_calculator') {
+            const monthlyAmountInput = document.getElementById('dca-monthly-amount');
+            const yearsInput = document.getElementById('dca-years');
+            const annualRateInput = document.getElementById('dca-annual-rate');
+            const futureValueDisplay = document.getElementById('dca-future-value-result');
+            const totalInvestedDisplay = document.getElementById('dca-total-invested-result');
+
+            const calculateDCAFutureValue = () => {
+                const P = parseFloat(monthlyAmountInput.value);
+                const years = parseFloat(yearsInput.value);
+                const annualRate = parseFloat(annualRateInput.value);
+
+                if (isNaN(P) || isNaN(years) || isNaN(annualRate) || P <= 0 || years <= 0) {
+                    futureValueDisplay.textContent = '請輸入有效數值';
+                    futureValueDisplay.style.color = '#EF4444';
+                    totalInvestedDisplay.textContent = '';
+                    return;
+                }
+
+                const r_annual = annualRate / 100;
+                const r_monthly = r_annual / 12;
+                const n_months = years * 12;
+
+                let futureValue = 0;
+                if (r_monthly === 0) {
+                    futureValue = P * n_months;
+                } else {
+                    futureValue = P * ((Math.pow(1 + r_monthly, n_months) - 1) / r_monthly) * (1 + r_monthly);
+                }
+                
+                const totalInvested = P * n_months;
+
+                totalInvestedDisplay.textContent = `原始投入成本: NT$ ${totalInvested.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+                futureValueDisplay.textContent = `預計未來總值: NT$ ${futureValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+                futureValueDisplay.style.color = '#4A908A';
+            };
+
+            monthlyAmountInput.addEventListener('input', calculateDCAFutureValue);
+            yearsInput.addEventListener('input', calculateDCAFutureValue);
+            annualRateInput.addEventListener('input', calculateDCAFutureValue);
+            calculateDCAFutureValue();
+        }
+
+
+        toolDetailModalOverlay.classList.add('active');
+    }
+
+    toolsContainer.querySelectorAll('.p-3').forEach(card => {
+        card.addEventListener('click', (e) => {
+            const index = parseInt(e.currentTarget.dataset.index);
+            showToolDetails(index);
+        });
+    });
+
+    closeToolDetailModalBtn.addEventListener('click', () => {
+        toolDetailModalOverlay.classList.remove('active');
+    });
+
+    toolDetailModalOverlay.addEventListener('click', (e) => {
+        if (e.target === toolDetailModalOverlay) {
+            toolDetailModalOverlay.classList.remove('active');
+        }
+    });
+
+    // Image Modal Logic
+    const imageModalOverlay = document.getElementById('image-modal-overlay');
+    const closeImageModalBtn = document.getElementById('close-image-modal');
+    const imageModalImg = document.getElementById('image-modal-img');
+
+    const etfImages = {
+        'name-dividend': 'images/ETF名稱.png',
+        'expense-ratio': 'images/管理費.png',
+        'dividend-frequency': 'images/配息.png',
+        'composition': 'images/產業配置.png',
+        'premium-discount': 'images/折溢價.png'
+    };
+
+    document.querySelectorAll('[data-image-modal]').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const imageKey = e.currentTarget.dataset.imageModal;
+            const imageUrl = etfImages[imageKey];
+            if (imageUrl) {
+                imageModalImg.src = imageUrl;
+                imageModalOverlay.classList.add('active');
+            } else {
+                console.error('Image URL not found for key:', imageKey);
+            }
+        });
+    });
+
+    closeImageModalBtn.addEventListener('click', () => {
+        imageModalOverlay.classList.remove('active');
+        imageModalImg.src = '';
+    });
+
+    imageModalOverlay.addEventListener('click', (e) => {
+        if (e.target === imageModalOverlay) {
+            imageModalOverlay.classList.remove('active');
+            imageModalImg.src = '';
+        }
+    });
+
+
+    const etfData = {
+        labels: ['0050 (台灣50)', '0056 (高股息)'],
+        datasets: [
+            {
+                label: '2年平均年化報酬',
+                data: [18.11, 8.76],
+                backgroundColor: 'rgba(74, 144, 138, 0.6)',
+                borderColor: 'rgba(74, 144, 138, 1)',
+                borderWidth: 1,
+            },
+            {
+                label: '10年平均年化報酬',
+                data: [8.23, 6.99],
+                backgroundColor: 'rgba(245, 166, 35, 0.6)',
+                borderColor: 'rgba(245, 166, 35, 1)',
+                borderWidth: 1,
+            }
+        ]
+    };
+    new Chart(document.getElementById('etf-comparison-chart').getContext('2d'), {
+        type: 'bar',
+        data: etfData,
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'top' }, title: { display: true, text: '熱門ETF報酬率比較 (%)' } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+    // --- ROBO ADVISOR LOGIC ---
+    let assetGrowthChart;
+    const roboInputs = document.querySelectorAll('.robo-input');
+    const successProbabilityEl = document.getElementById('success-probability');
+    const combinedReturnRateEl = document.getElementById('combined-return-rate');
+    
+    // MODIFICATION START: Updated selectors and added new ones for number inputs
+    const portfolioAllocInputs = {
+        conservative: document.getElementById('conservative-alloc-input'),
+        moderate: document.getElementById('moderate-alloc-input'),
+        aggressive: document.getElementById('aggressive-alloc-input'),
+    };
+    const remainingAllocPctEl = document.getElementById('remaining-alloc-pct');
+    // MODIFICATION END
+
+    function setPortfolioAllocation(riskType) {
+        let allocations;
+        if (riskType && riskProfileData[riskType]) {
+            allocations = riskProfileData[riskType].allocation;
+        } else {
+            // Default allocation if no profile
+            allocations = { conservative: 34, moderate: 33, aggressive: 33 };
+        }
+        
+        appState.portfolioAllocation = {...allocations};
+        updatePortfolioUI();
+        runRoboAdvisorSimulation();
+    }
+
+    function updatePortfolioUI() {
+        let total = 0;
+        for (const type in appState.portfolioAllocation) {
+            const value = Math.round(appState.portfolioAllocation[type]);
+            portfolioAllocInputs[type].value = value;
+            total += value;
+        }
+        const remaining = 100 - total;
+        remainingAllocPctEl.textContent = `${remaining}%`;
+        remainingAllocPctEl.style.color = remaining < 0 ? '#EF4444' : '#4A908A';
+    }
+
+    Object.values(portfolioAllocInputs).forEach(input => {
+        input.addEventListener('input', handleAllocationChange);
+    });
+
+    function handleAllocationChange() {
+        let total = 0;
+        const values = {};
+
+        // Read all values first
+        for (const type in portfolioAllocInputs) {
+            let val = parseInt(portfolioAllocInputs[type].value) || 0;
+            if (val < 0) val = 0;
+            if (val > 100) val = 100;
+            values[type] = val;
+            total += val;
+        }
+
+        // If total exceeds 100, we just update the display, but don't auto-correct
+        // This allows users to manually fix it.
+        const remaining = 100 - total;
+        remainingAllocPctEl.textContent = `${remaining}%`;
+        remainingAllocPctEl.style.color = remaining < 0 ? '#EF4444' : '#4A908A';
+
+        // Update state only if the total is valid (<= 100)
+        if (total <= 100) {
+            appState.portfolioAllocation.conservative = values.conservative;
+            appState.portfolioAllocation.moderate = values.moderate;
+            appState.portfolioAllocation.aggressive = values.aggressive;
+        }
+        
+        // Always run simulation to reflect changes
+        runRoboAdvisorSimulation();
+    }
+
+
+    function runRoboAdvisorSimulation() {
+        const goalAmount = parseFloat(document.getElementById('goal-amount').value);
+        const years = parseInt(document.getElementById('goal-years').value);
+        const lumpSum = parseFloat(document.getElementById('lump-sum').value);
+        const monthlyInvestment = parseFloat(document.getElementById('monthly-investment').value);
+
+        if (isNaN(goalAmount) || isNaN(years) || isNaN(lumpSum) || isNaN(monthlyInvestment) || years <= 0 || goalAmount <= 0) {
+            successProbabilityEl.textContent = '請輸入有效數值';
+            combinedReturnRateEl.textContent = '--%';
+            updateAssetGrowthChart(null);
+            return;
+        }
+        
+        // Recalculate total from inputs for simulation
+        let currentTotal = 0;
+        for (const type in portfolioAllocInputs) {
+            currentTotal += (parseInt(portfolioAllocInputs[type].value) || 0);
+        }
+
+        if (currentTotal > 100) {
+             successProbabilityEl.textContent = '比例>100%';
+             combinedReturnRateEl.textContent = '--%';
+             updateAssetGrowthChart(null);
+             return;
+        }
+
+
+        const rates = riskProfileData.conservative.rates; // rates are the same for all profiles
+        const alloc = {
+            conservative: parseInt(portfolioAllocInputs.conservative.value) || 0,
+            moderate: parseInt(portfolioAllocInputs.moderate.value) || 0,
+            aggressive: parseInt(portfolioAllocInputs.aggressive.value) || 0,
+        };
+        
+        const annualRate = (alloc.conservative / 100 * rates.conservative) +
+                           (alloc.moderate / 100 * rates.moderate) +
+                           (alloc.aggressive / 100 * rates.aggressive);
+
+        combinedReturnRateEl.textContent = `${(annualRate * 100).toFixed(2)}%`;
+
+        // Calculate projected future value
+        const monthlyRate = annualRate / 12;
+        const n = years * 12;
+        const fvLumpSum = lumpSum * Math.pow(1 + monthlyRate, n);
+        const fvMonthly = monthlyInvestment * ( (Math.pow(1 + monthlyRate, n) - 1) / monthlyRate );
+        const projectedFv = fvLumpSum + fvMonthly;
+
+        let probability = (projectedFv / goalAmount) * 100;
+        if (probability > 99) probability = 99;
+        
+        successProbabilityEl.textContent = `${Math.round(probability)}%`;
+
+        const chartData = { goalAmount, years, lumpSum, monthlyInvestment, annualRate };
+        updateAssetGrowthChart(chartData);
+    }
+
+    function updateAssetGrowthChart(data) {
+        const ctx = document.getElementById('asset-growth-chart').getContext('2d');
+        if (!data) {
+            if (assetGrowthChart) {
+                assetGrowthChart.destroy();
+                assetGrowthChart = null;
+            }
+            return;
+        }
+
+        const { goalAmount, years, lumpSum, monthlyInvestment, annualRate } = data;
+        const labels = Array.from({length: years + 1}, (_, i) => `第 ${i} 年`);
+        const projectedData = [];
+        let currentValue = lumpSum;
+        projectedData.push(currentValue);
+
+        for (let year = 1; year <= years; year++) {
+            currentValue = (currentValue + monthlyInvestment * 12) * (1 + annualRate);
+            projectedData.push(currentValue);
+        }
+
+        const chartConfig = {
+            labels: labels,
+            datasets: [
+                {
+                    label: '預計資產成長',
+                    data: projectedData,
+                    borderColor: '#4A908A',
+                    backgroundColor: 'rgba(74, 144, 138, 0.1)',
+                    fill: true,
+                    tension: 0.2
+                },
+                {
+                    label: '目標金額',
+                    data: Array(years + 1).fill(goalAmount),
+                    borderColor: '#F59E0B',
+                    borderDash: [5, 5],
+                    fill: false,
+                    pointRadius: 0
+                }
+            ]
+        };
+
+        if (assetGrowthChart) {
+            assetGrowthChart.data = chartConfig;
+            assetGrowthChart.update();
+        } else {
+            assetGrowthChart = new Chart(ctx, {
+                type: 'line',
+                data: chartConfig,
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { title: { display: false } },
+                    scales: { y: { ticks: { callback: (value) => `NT$${(value/10000).toFixed(0)}萬` } } }
+                }
+            });
+        }
+    }
+
+    roboInputs.forEach(input => input.addEventListener('input', runRoboAdvisorSimulation));
+    setPortfolioAllocation(null); // Initial run with default allocation
+
+    // --- Hedging Simulator Logic ---
+    const hedgeStockValueInput = document.getElementById('hedge-stock-value');
+    const hedgeMarketDeclineInput = document.getElementById('hedge-market-decline');
+
+    function calculateHedging() {
+        const stockValue = parseFloat(hedgeStockValueInput.value) || 0;
+        const declinePercent = parseFloat(hedgeMarketDeclineInput.value) || 0;
+
+        const lossAmount = stockValue * (declinePercent / 100);
+
+        const noHedgeFinal = stockValue - lossAmount;
+        document.getElementById('no-hedge-initial').textContent = `NT$ ${stockValue.toLocaleString()}`;
+        document.getElementById('no-hedge-loss').textContent = `- NT$ ${lossAmount.toLocaleString()}`;
+        document.getElementById('no-hedge-final').textContent = `NT$ ${noHedgeFinal.toLocaleString()}`;
+
+        const futuresProfit = lossAmount;
+        const hedgeFinal = stockValue - lossAmount + futuresProfit;
+        document.getElementById('hedge-initial').textContent = `NT$ ${stockValue.toLocaleString()}`;
+        document.getElementById('hedge-stock-loss').textContent = `- NT$ ${lossAmount.toLocaleString()}`;
+        document.getElementById('hedge-futures-profit').textContent = `+ NT$ ${futuresProfit.toLocaleString()}`;
+        document.getElementById('hedge-final').textContent = `NT$ ${hedgeFinal.toLocaleString()}`;
+    }
+
+    hedgeStockValueInput.addEventListener('input', calculateHedging);
+    hedgeMarketDeclineInput.addEventListener('input', calculateHedging);
+    calculateHedging();
+
+    // --- Tutorial Gallery Logic ---
+    const tutorialSteps = [
+        { src: 'images/1.png', title: '步驟 1: 登入群益行動贏家' },
+        { src: 'images/2.png', title: '步驟 2: 點擊下方「交易功能」' },
+        { src: 'images/3.png', title: '步驟 3: 進入「期貨下單」' },
+        { src: 'images/4.png', title: '步驟 4: 點擊「商品」進行選擇' },
+        { src: 'images/5.png', title: '步驟 5: 選擇「指數」，再點選「小台指近」或「微型台指近」' },
+        { src: 'images/6.png', title: '步驟 6: 確認商品後，選擇「賣出」' },
+        { src: 'images/7.png', title: '步驟 7: 點選「ROD」' },
+        { src: 'images/8.png', title: '步驟 8: 選擇「市價」' },
+        { src: 'images/9.png', title: '步驟 9: 輸入您要下單的「口數」' },
+        { src: 'images/10.png', title: '步驟 10: 按下「下單」' },
+        { src: 'images/11.png', title: '步驟 11: 確認下單資訊後，送出即可' },
+    ];
+
+    const openTutorialBtn = document.getElementById('open-tutorial-btn');
+    const galleryModalOverlay = document.getElementById('gallery-modal-overlay');
+    const closeGalleryModalBtn = document.getElementById('close-gallery-modal');
+    const galleryModalTitle = document.getElementById('gallery-modal-title');
+    const galleryModalImg = document.getElementById('gallery-modal-img');
+    const galleryPrevBtn = document.getElementById('gallery-prev-btn');
+    const galleryNextBtn = document.getElementById('gallery-next-btn');
+    const galleryStepIndicator = document.getElementById('gallery-step-indicator');
+    
+    let currentStepIndex = 0;
+
+    function showStep(index) {
+        const step = tutorialSteps[index];
+        galleryModalImg.src = step.src;
+        galleryModalTitle.textContent = step.title;
+        galleryStepIndicator.textContent = `步驟 ${index + 1} / ${tutorialSteps.length}`;
+        
+        galleryPrevBtn.disabled = index === 0;
+        galleryNextBtn.disabled = index === tutorialSteps.length - 1;
+    }
+
+    openTutorialBtn.addEventListener('click', () => {
+        currentStepIndex = 0;
+        showStep(currentStepIndex);
+        galleryModalOverlay.classList.add('active');
+    });
+
+    closeGalleryModalBtn.addEventListener('click', () => {
+        galleryModalOverlay.classList.remove('active');
+    });
+
+    galleryModalOverlay.addEventListener('click', (e) => {
+        if (e.target === galleryModalOverlay) {
+            galleryModalOverlay.classList.remove('active');
+        }
+    });
+
+    galleryPrevBtn.addEventListener('click', () => {
+        if (currentStepIndex > 0) {
+            currentStepIndex--;
+            showStep(currentStepIndex);
+        }
+    });
+
+    galleryNextBtn.addEventListener('click', () => {
+        if (currentStepIndex < tutorialSteps.length - 1) {
+            currentStepIndex++;
+            showStep(currentStepIndex);
+        }
+    });
+
+    // Rate Info Modal Logic
+    const rateInfoBtn = document.getElementById('rate-info-btn');
+    const rateInfoModalOverlay = document.getElementById('rate-info-modal-overlay');
+    const closeRateInfoModalBtn = document.getElementById('close-rate-info-modal');
+
+    rateInfoBtn.addEventListener('click', () => {
+        rateInfoModalOverlay.classList.add('active');
+    });
+    closeRateInfoModalBtn.addEventListener('click', () => {
+        rateInfoModalOverlay.classList.remove('active');
+    });
+    rateInfoModalOverlay.addEventListener('click', (e) => {
+        if (e.target === rateInfoModalOverlay) {
+            rateInfoModalOverlay.classList.remove('active');
+        }
+    });
+
+});
+</script>
+</body>
+</html>
